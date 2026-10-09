@@ -12,7 +12,7 @@ let pendingBackup=null,restoreRequest=0;
 let lang='zh',state=C.make(Array.from({length:12},(_,i)=>String(i+1).padStart(2,'0'))),demo=true,className='',question=questions.zh,storageOK=true,projected=false,feedback=null;
 try{const x=JSON.parse(localStorage.getItem(KEY));if(x&&C.valid(x.state)){state=x.state;lang=x.lang==='en'?'en':'zh';demo=x.demo===true;className=typeof x.className==='string'?x.className.slice(0,50):'';question=typeof x.question==='string'?x.question.slice(0,400):questions[lang]}}catch{}
 let total=20,remaining=20,running=false,deadline=0,timerTick=null,toastTick=null;
-const t=(key,...args)=>typeof T[lang][key]==='function'?T[lang][key](...args):T[lang][key];
+const t=(key,...args)=>{const value=T[lang][key]??T.zh[key];return (typeof value==='function'?value(...args):value)??''};
 const label=p=>demo?t('seat',p.name):p.name;
 function save(){try{localStorage.setItem(KEY,JSON.stringify({state,lang,demo,className,question}));storageOK=true}catch{storageOK=false}$('save-state').textContent=t(storageOK?'saved':'notSaved')}
 function toast(message){$('toast').textContent=message;$('toast').classList.remove('hidden');clearTimeout(toastTick);toastTick=setTimeout(()=>$('toast').classList.add('hidden'),4000)}
