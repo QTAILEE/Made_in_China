@@ -2,7 +2,15 @@
 'use strict';
 const make=(names)=>({students:names.map((name,i)=>({id:'s'+i,name,present:true})),events:[],selected:null});
 const counts=(s,id)=>{const events=s.events.filter(e=>e.id===id);return{offered:events.length,shared:events.filter(e=>e.outcome==='shared').length}};
-function candidates(s){let pool=s.students.filter(p=>p.present);if(pool.length>1&&s.events.length)pool=pool.filter(p=>p.id!==s.events[s.events.length-1].id);if(!pool.length)return[];const min=Math.min(...pool.map(p=>counts(s,p.id).offered));return pool.filter(p=>counts(s,p.id).offered===min)}
+function candidates(s){
+  const present=s.students.filter(p=>p.present);
+  if(!present.length)return[];
+  const min=Math.min(...present.map(p=>counts(s,p.id).offered));
+  const pool=present.filter(p=>counts(s,p.id).offered===min);
+  // Fairness takes priority; avoid consecutive invitations only among tied candidates.
+  if(pool.length>1&&s.events.length)return pool.filter(p=>p.id!==s.events[s.events.length-1].id);
+  return pool;
+}
 function draw(s,random=Math.random){if(s.selected)throw Error('Resolve current invitation first');const pool=candidates(s);if(!pool.length)throw Error('No students present');const choice=pool[Math.min(pool.length-1,Math.floor(random()*pool.length))];s.selected=choice.id;return choice}
 function resolve(s,outcome){if(!['shared','pass'].includes(outcome))throw Error('Invalid outcome');if(!s.selected)throw Error('No active invitation');const event={id:s.selected,outcome,time:new Date().toISOString()};s.events.push(event);s.selected=null;return event}
 function undo(s){if(s.selected)throw Error('Resolve current invitation first');return s.events.pop()||null}
